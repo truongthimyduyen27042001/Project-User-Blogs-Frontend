@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Form, Input, Button, Typography, Card, message } from "antd";
 import { UserOutlined, LockOutlined, CompassTwoTone } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "../../../stores/auth.store";
 import "antd/dist/reset.css";
 
 const { Title, Text } = Typography;
@@ -18,6 +19,8 @@ const LoginPage = () => {
   const timeoutRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { login, isLoading, error, clearError } = useAuthStore();
+  const [messageApi, contextHolder] = message.useMessage();
 
   // Lấy trang trước đó để redirect sau khi login
   const from = location.state?.from?.pathname || "/";
@@ -33,17 +36,39 @@ const LoginPage = () => {
     };
   }, [current]);
 
+  // Hiển thị error message
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+      clearError();
+    }
+  }, [error, clearError]);
+
   const onFinish = async (values: { email: string; password: string }) => {
     try {
-      message.success("Đăng nhập thành công!");
-      navigate(from, { replace: true });
+      await login(values);
+      messageApi.open({
+        type: "success",
+        content: "Đăng nhập thành công!",
+        duration: 2,
+      });
+      navigate(from, {
+        replace: true
+      }
+      );
     } catch (error) {
-      // Error đã được xử lý trong store
+      console.log('debug error', error)
+      messageApi.open({
+        type: 'error',
+        content: "Bạn đăng nhập không đúng mật khẩu hoặc tài khoản!",
+        duration: 2,
+      })
     }
   };
 
   return (
     <div className="w-screen h-screen overflow-hidden flex bg-black">
+      {contextHolder}
       {/* Left: Background slideshow 60vw */}
       <div className="w-[60vw] h-full relative overflow-hidden">
         {images.map((img, idx) => (
@@ -104,11 +129,11 @@ const LoginPage = () => {
               <Button
                 type="primary"
                 htmlType="submit"
-                loading={false}
+                loading={isLoading}
                 className="w-full bg-gradient-to-r from-green-400 to-blue-500 border-0 text-white text-lg font-semibold h-12 rounded-xl shadow-lg hover:from-blue-500 hover:to-green-400 transition-all"
                 size="large"
               >
-                {false ? "Đang đăng nhập..." : "Đăng nhập"}
+                {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
               </Button>
             </Form.Item>
           </Form>

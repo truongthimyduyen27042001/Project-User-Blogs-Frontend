@@ -1,7 +1,8 @@
 export const paths = {
   Login: '/login',
   Register: '/register',
-  BlogList: '/',
+  Dashboard: '/',
+  BlogList: '/blogs',
   BlogDetail: '/blogs/:id',
   BlogEdit: '/blogs/:id/edit',
   Chat: '/chat',
